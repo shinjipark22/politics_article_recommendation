@@ -37,7 +37,7 @@ def crawl_naver_politics_by_date(target_date):
                 print(f"\n[{target_date}] 페이지 끝 도달 (항목 없음).")
                 break
             
-            # --- [페이지 중복 체크 로직] (원본 코드 유지) ---
+            # --- [페이지 중복 체크 로직] ---
             first_item = news_items[0]
             first_link_tag = first_item.select_one('dt:not(.photo) a, dd a')
             
@@ -142,7 +142,7 @@ def crawl_naver_politics_by_date(target_date):
     save_path = 'data/raw'
     if not os.path.exists(save_path):
         os.makedirs(save_path, exist_ok=True)
-        
+
     filename = f'data/raw/naver_politics_{target_date}.csv'
 
     if news_list:
