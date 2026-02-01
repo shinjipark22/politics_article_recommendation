@@ -17,7 +17,7 @@ from src.preprocessor import preprocess_daily_news
 default_args = {
     'owner': 'shinji',
     'depends_on_past': False,
-    'start_date' : datetime(2026, 1, 26), # 수집 시작 날짜
+    'start_date' : datetime(2025, 11, 1), # 수집 시작 날짜
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
@@ -31,6 +31,7 @@ with DAG(
     description='매일 네이버 정치 뉴스를 수집하는 파이프라인',
     schedule_interval='@daily',
     catchup=True,
+    max_active_runs=3,
     tags=['politics', 'naver', 'project']
 ) as dag:
 
