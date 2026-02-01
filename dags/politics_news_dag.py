@@ -4,8 +4,15 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+if project_root not in sys.path:
+    sys.path.append(project_root)
+
 from src.news_crawler import crawl_naver_politics_by_date
+from src.preprocessor import preprocess_daily_news
+
 # 기본 설정
 default_args = {
     'owner': 'shinji',
@@ -34,8 +41,14 @@ with DAG(
         python_callable=crawl_naver_politics_by_date,
 
         # 날짜 전달
-        op_kwargs={'target_date': '{{ ds_nodash }}'},
+        op_kwargs={'target_date': '{{ yesterday_ds_nodash }}'},
+    )
+
+    preprocessing_task = PythonOperator(
+        task_id='daily_preprocess_task',
+        python_callable=preprocess_daily_news,
+        op_kwargs={'target_date': '{{ yesterday_ds_nodash }}'},
     )
 
     # 작업 순서
-    crawling_task
+    crawling_task >> preprocessing_task

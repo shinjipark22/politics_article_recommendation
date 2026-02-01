@@ -22,7 +22,7 @@ airflow-*.err
 airflow-*.log
 
 # 4. 수집된 데이터 제외 (데이터는 코드 저장소에 넣지 않는 게 원칙)
-data/*.csv
+data/
 # 단, data 폴더 자체는 유지하고 싶다면 아래 줄 추가
 !data/.gitkeep
 

@@ -139,7 +139,11 @@ def crawl_naver_politics_by_date(target_date):
             break
     
     # --- [데이터 저장] ---
-    filename = f'data/naver_politics_{target_date}.csv'
+    save_path = 'data/raw'
+    if not os.path.exists(save_path):
+        os.makedirs(save_path, exist_ok=True)
+        
+    filename = f'data/raw/naver_politics_{target_date}.csv'
 
     if news_list:
         df = pd.DataFrame(news_list)
