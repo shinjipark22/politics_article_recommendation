@@ -1,9 +1,11 @@
+import sys
+import os
 from airflow import DAG 
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 
-from news_crawler import crawl_naver_politics_by_date
-
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from src.news_crawler import crawl_naver_politics_by_date
 # 기본 설정
 default_args = {
     'owner': 'shinji',

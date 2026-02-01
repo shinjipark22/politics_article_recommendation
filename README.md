@@ -1,12 +1,14 @@
 # 📰 네이버 정치 뉴스 자동 수집기 (Naver Politics News Crawler)
 
 Apache Airflow를 사용하여 네이버 뉴스 '정치' 섹션의 기사들을 매일 자동으로 수집하고, 분석 가능한 데이터(CSV)로 저장하는 데이터 파이프라인 프로젝트입니다.
+추후 그래프 기반 뉴스 추천 시스템 확장을 위해 핵심 로직이 모듈화(`src`)되어 있습니다.
 
 ## 📌 주요 기능 (Key Features)
 
 * **자동화된 파이프라인**: Airflow DAG를 통해 매일 자정(`@daily`)에 자동으로 크롤링이 수행됩니다.
 * **상세 데이터 수집**: 단순 제목/링크뿐만 아니라 **본문(Content), 기자명, 언론사, 기사 작성/수정 시간, 뉴스 ID** 등 상세 정보를 수집합니다.
 * **데이터 정제**: 뉴스 본문 내의 불필요한 HTML 태그, 광고 스크립트, 공백 등을 제거하여 분석하기 좋은 형태로 가공합니다.
+* **모듈화된 구조**: 스케줄링(`dags`)과 핵심 로직(`src`)을 분리하여 유지보수성과 확장성을 높였습니다.
 * **과거 데이터 수집 (Backfill)**: `catchup=True` 설정을 통해 설정된 시작 날짜부터 현재까지 누락된 데이터를 자동으로 수집합니다.
 * **CSV 저장**: 수집된 데이터는 날짜별로 `data/` 폴더에 저장되며, 엑셀 깨짐 방지(`utf-8-sig`) 처리가 되어 있습니다.
 
@@ -15,8 +17,11 @@ Apache Airflow를 사용하여 네이버 뉴스 '정치' 섹션의 기사들을 
 ```bash
 politics_article_recommendation_project/
 ├── dags/
-│   ├── politics_news_dag.py  # Airflow 스케줄링 및 작업 정의 (DAG)
-│   └── news_crawler.py       # 네이버 뉴스 상세 크롤링 로직 (Worker)
+│   └── politics_news_dag.py  # Airflow DAG 정의 (스케줄링 담당)
+├── src/                      # [Core] 핵심 로직 모듈
+│   ├── news_crawler.py       # 네이버 뉴스 상세 크롤링 로직
+│   ├── preprocessor.py       # 텍스트 전처리 및 정제 유틸리티
+│   └── graph/                # (예정) 그래프 임베딩 및 모델링 폴더
 ├── data/                     # 수집된 CSV 파일이 저장되는 곳 (자동 생성)
 ├── requirements.txt          # 의존성 패키지 목록
 ├── .gitignore                # Git 제외 설정
@@ -35,7 +40,7 @@ source airflow_env/bin/activate
 
 # 2. 필수 패키지 설치 (Airflow 버전 제약조건 포함)
 # 주의: Python 3.12 호환성을 위해 constraints 파일을 반드시 함께 사용해야 합니다.
-pip install -r requirements.txt --constraint "[https://raw.githubusercontent.com/apache/airflow/constraints-2.10.2/constraints-3.12.txt](https://raw.githubusercontent.com/apache/airflow/constraints-2.10.2/constraints-3.12.txt)"
+pip install -r requirements.txt --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.10.2/constraints-3.12.txt"
 ```
 
 ### 2. Airflow 실행
@@ -61,7 +66,7 @@ airflow standalone
 
 | 컬럼명 | 설명 | 예시 |
 | :--- | :--- | :--- |
-| **news_id** | 뉴스 고유 ID (oid-aid 조합) | `001-0012345678` |
+| **news_id** | 뉴스 고유 ID (oid-aid 또는 path 기반) | `001-0012345678` |
 | **작성일시** | 기사 작성 시간 | `2026-01-26 10:30:01` |
 | **수정일시** | 기사 수정 시간 (없으면 빈칸) | `2026-01-26 11:00:00` |
 | **언론사** | 뉴스를 발행한 언론사 | `연합뉴스` |
@@ -81,4 +86,4 @@ airflow standalone
 
 ## 👨‍💻 작성자 (Author)
 
-* **Shinji** (Developer)
+* **Shinji** 
