@@ -58,10 +58,20 @@ def crawl_naver_politics_by_date(target_date):
                     if not article_url or 'naver.com' not in article_url: continue
 
                     # 1. 뉴스 ID 추출 (oid-aid)
+                    news_id = ""
+                    
+                    # 패턴 A: oid=001&aid=0000001 형식
                     oid_match = re.search(r'oid=(\d+)', article_url)
                     aid_match = re.search(r'aid=(\d+)', article_url)
-                    news_id = f"{oid_match.group(1)}-{aid_match.group(1)}" if oid_match and aid_match else ""
-
+                    
+                    if oid_match and aid_match:
+                        news_id = f"{oid_match.group(1)}-{aid_match.group(1)}"
+                    else:
+                        # 패턴 B: /article/001/0000001 형식 (여기를 추가!)
+                        path_match = re.search(r'/article/(\d+)/(\d+)', article_url)
+                        if path_match:
+                            news_id = f"{path_match.group(1)}-{path_match.group(2)}"
+                    
                     title = link_tag.text.strip()
                     press = item.select_one('span.writing').text.strip() if item.select_one('span.writing') else ''
                     
