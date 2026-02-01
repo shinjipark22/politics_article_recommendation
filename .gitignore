@@ -9,12 +9,17 @@ env/
 __pycache__/
 *.pyc
 
+
 # 3. Airflow 로컬 설정 및 DB 제외 (서버마다 새로 만드는 게 나음)
 airflow.db
 airflow.cfg
 webserver_config.py
 standalone_admin_password.txt
 logs/
+*.pid
+airflow-*.pid
+airflow-*.err
+airflow-*.log
 
 # 4. 수집된 데이터 제외 (데이터는 코드 저장소에 넣지 않는 게 원칙)
 data/*.csv
