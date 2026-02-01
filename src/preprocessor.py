@@ -67,20 +67,17 @@ def preprocess_daily_news(target_date):
     """
     [Airflow 연동 함수]
     1. data/raw 폴더에서 원본 CSV를 읽어옴
-    2. 전처리 수행
+    2. 전처리 수행 (기존 컬럼 덮어쓰기로 용량 최적화)
     3. data/processed 폴더에 결과 저장
     """
     # 프로젝트 루트 경로 찾기
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) 
     
-    # [수정된 부분] 폴더 경로를 raw와 processed로 분리
     raw_dir = os.path.join(base_dir, 'data', 'raw')
     processed_dir = os.path.join(base_dir, 'data', 'processed')
     
-    # processed 폴더가 없으면 생성 (에러 방지)
     os.makedirs(processed_dir, exist_ok=True)
 
-    # 파일 경로 설정 
     input_file = os.path.join(raw_dir, f'naver_politics_{target_date}.csv')
     output_file = os.path.join(processed_dir, f'naver_politics_{target_date}.csv')
 
@@ -88,22 +85,24 @@ def preprocess_daily_news(target_date):
         print(f"[Skip] 원본 파일이 없습니다: {input_file}")
         return
 
-    print(f"[Start] 데이터 전처리 시작: {input_file}")
+    print(f"[Start] 데이터 용량 최적화 전처리 시작: {input_file}")
 
     # 데이터 로드
     df = pd.read_csv(input_file)
     preprocessor = NewsPreprocessor()
 
-    # 1. 본문 전처리
+    # 1. 본문 전처리 및 덮어쓰기
     if '본문' in df.columns:
-        print(" - 본문 정제 중...")
-        df['본문_전처리'] = df['본문'].fillna('').apply(preprocessor.clean_text)
+        print(" - 본문 정제 및 컬럼 덮어쓰기 중...")
+        # 기존 '본문' 컬럼의 데이터를 직접 정제된 텍스트로 교체
+        df['본문'] = df['본문'].fillna('').apply(preprocessor.clean_text)
 
-    # 2. 기자명 전처리
+    # 2. 기자명 전처리 및 덮어쓰기
     if '기자명' in df.columns:
-        print(" - 기자명 정규화 중...")
-        df['기자명_전처리'] = df['기자명'].fillna('').apply(preprocessor.clean_reporter)
+        print(" - 기자명 정규화 및 컬럼 덮어쓰기 중...")
+        # 기존 '기자명' 컬럼의 데이터를 정규화된 이름으로 교체
+        df['기자명'] = df['기자명'].fillna('').apply(preprocessor.clean_reporter)
 
-    # 3. 저장 (processed 폴더에 저장)
+    # 3. 저장 (본문에 본문 전처리, 기자명에 기자명 전처리 덮어씌움)
     df.to_csv(output_file, index=False, encoding='utf-8-sig')
-    print(f"[Done] 전처리 완료 및 저장: {output_file}")
+    print(f"[Done] 전처리 및 용량 최적화 완료: {output_file}")
