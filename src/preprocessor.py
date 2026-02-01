@@ -5,6 +5,23 @@ import pandas as pd
 class NewsPreprocessor:
     def __init__(self):
         pass
+    
+    def clean_title(self, text):
+        """
+        [제목 전처리]
+        [단독], [종합], [속보] 등 대괄호 태그 제거 및 따옴표 정제
+        """
+        if not isinstance(text, str):
+            return ""
+        
+        # 1. 대괄호 및 그 안의 내용 제거 (예: [단독], [속보])
+        text = re.sub(r'\[.*?\]', '', text)
+        
+        # 2. 불필요한 따옴표 및 특수문자 정제 (본문 정제 로직 활용)
+        # 제목 특성에 맞게 문맥 기호만 남기고 정제
+        text = self.clean_text(text)
+        
+        return text
 
     def clean_text(self, text):
         """
@@ -91,18 +108,23 @@ def preprocess_daily_news(target_date):
     df = pd.read_csv(input_file)
     preprocessor = NewsPreprocessor()
 
-    # 1. 본문 전처리 및 덮어쓰기
+    # 1. 제목 전처리 및 덮어쓰기
+    if '제목' in df.columns:
+        print(" - 제목 정제 및 컬럼 덮어쓰기 중...")
+        df['제목'] = df['제목'].fillna('').apply(preprocessor.clean_title)
+
+    # 2. 본문 전처리 및 덮어쓰기
     if '본문' in df.columns:
         print(" - 본문 정제 및 컬럼 덮어쓰기 중...")
         # 기존 '본문' 컬럼의 데이터를 직접 정제된 텍스트로 교체
         df['본문'] = df['본문'].fillna('').apply(preprocessor.clean_text)
 
-    # 2. 기자명 전처리 및 덮어쓰기
+    # 3. 기자명 전처리 및 덮어쓰기
     if '기자명' in df.columns:
         print(" - 기자명 정규화 및 컬럼 덮어쓰기 중...")
         # 기존 '기자명' 컬럼의 데이터를 정규화된 이름으로 교체
         df['기자명'] = df['기자명'].fillna('').apply(preprocessor.clean_reporter)
 
-    # 3. 저장 (본문에 본문 전처리, 기자명에 기자명 전처리 덮어씌움)
+    # 4. 저장 (본문에 본문 전처리, 기자명에 기자명 전처리 덮어씌움)
     df.to_csv(output_file, index=False, encoding='utf-8-sig')
     print(f"[Done] 전처리 및 용량 최적화 완료: {output_file}")
