@@ -20,7 +20,7 @@ kst = pendulum.timezone("Asia/Seoul")
 default_args = {
     'owner': 'shinji',
     'depends_on_past': False,
-    'start_date' : datetime(2026, 1, 31, tzinfo=kst), # 수집 시작 날짜
+    'start_date' : datetime(2025, 8, 1, tzinfo=kst), # 수집 시작 날짜
     'email_on_failure': False,
     'email_on_retry': False,
     'retries': 1,
@@ -33,7 +33,7 @@ with DAG(
     default_args=default_args,
     description='매일 자정(KST), 어제 날짜의 뉴스를 수집 및 전처리',
     schedule_interval='0 0 * * *',
-    catchup=True, # 잠깐 확인용으로 False (6개월치 수집할떄 True로 변경)
+    catchup=True, 
     max_active_runs=3,
     tags=['politics', 'naver', 'project']
 ) as dag:
@@ -45,13 +45,13 @@ with DAG(
         python_callable=crawl_naver_politics_by_date,
 
         # 날짜 전달
-        op_kwargs={'target_date': '{{ ds_nodash }}'},
+        op_kwargs={'target_date': '{{ next_ds_nodash }}'},
     )
 
     preprocessing_task = PythonOperator(
         task_id='daily_preprocess_task',
         python_callable=preprocess_daily_news,
-        op_kwargs={'target_date': '{{ ds_nodash }}'},
+        op_kwargs={'target_date': '{{ next_ds_nodash }}'},
     )
 
     # 작업 순서
