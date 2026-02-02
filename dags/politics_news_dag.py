@@ -35,8 +35,7 @@ with DAG(
     schedule_interval='0 0 * * *',
     catchup=False, # 잠깐 확인용으로 False (6개월치 수집할떄 True로 변경)
     max_active_runs=3,
-    tags=['politics', 'naver', 'project'],
-    timezone=kst
+    tags=['politics', 'naver', 'project']
 ) as dag:
 
     crawling_task = PythonOperator(
