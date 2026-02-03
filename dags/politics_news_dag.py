@@ -3,6 +3,7 @@ import os
 import pendulum
 from airflow import DAG 
 from airflow.operators.python import PythonOperator
+from airflow.operators.bash import BashOperator
 from datetime import datetime, timedelta
 
 
@@ -34,9 +35,14 @@ with DAG(
     description='매일 자정(KST), 어제 날짜의 뉴스를 수집 및 전처리',
     schedule_interval='0 0 * * *',
     catchup=True, 
-    max_active_runs=3,
+    max_active_runs=1,
     tags=['politics', 'naver', 'project']
 ) as dag:
+
+    cleanup_task = BashOperator(
+        task_id='cleanup_zombie_process',
+        bash_command='taskkill.exe /F /IM chromedriver.exe /T || true && taskkill.exe /F /IM chrome.exe /T || true'
+    )
 
     crawling_task = PythonOperator(
         task_id='daily_crawl_task',
@@ -46,6 +52,8 @@ with DAG(
 
         # 날짜 전달
         op_kwargs={'target_date': '{{ next_ds_nodash }}'},
+
+        execution_timeout=timedelta(minutes=40),
     )
 
     preprocessing_task = PythonOperator(
@@ -55,4 +63,4 @@ with DAG(
     )
 
     # 작업 순서
-    crawling_task >> preprocessing_task
+    cleanup_task >> crawling_task >> preprocessing_task
